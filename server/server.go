@@ -42,15 +42,12 @@ func (s *Server) readLoop(ws *websocket.Conn) {
 		}
 		msg := buf[:n]
 
-		s.broadcastMessage(msg, ws)
+		s.broadcastMessage(msg)
 	}
 }
 
-func (s *Server) broadcastMessage(b []byte, exclCon *websocket.Conn) {
+func (s *Server) broadcastMessage(b []byte) {
 	for ws := range s.conns {
-		if ws == exclCon {
-			continue
-		}
 		go func(ws *websocket.Conn) {
 			if _, err := ws.Write(b); err != nil {
 				fmt.Println("Error writing to connection: ", err)

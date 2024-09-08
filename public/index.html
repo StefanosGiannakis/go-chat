@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Basic Go Chat</title>
+	<style>
+		body { font-family: Arial, sans-serif; }
+		#chat { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+		#message { width: 80%; }
+		#send { width: 18%; }
+	</style>
+</head>
+<body>
+	<h1>Basic Chat App</h1>
+	<div id="chat"></div>
+	<input type="text" id="message" placeholder="Type a message...">
+	<button id="send">Send</button>
+
+	<script>
+		const chat = document.getElementById('chat');
+		const messageInput = document.getElementById('message');
+		const sendButton = document.getElementById('send');
+
+		const username = 'User' + Math.floor(Math.random() * 1000);
+
+		const ws = new WebSocket('ws://localhost:8080/ws?username=' + username); // @note(stef)
+
+		ws.onopen = function(event) {
+			chat.innerHTML += '<div>Connected to the server as ' + username + '</div>';
+		};
+
+		ws.onmessage = function(event) {
+			if (event.data.includes(username)) {
+				chat.innerHTML += `<div>${event.data}</div>`;
+			} else {
+				chat.innerHTML += `<div style="text-align: right;">${event.data}</div>`;
+			}
+			chat.scrollTop = chat.scrollHeight; 
+		};
+
+		ws.onclose = function(event) {
+			chat.innerHTML += '<div>Disconnected from the server</div>';
+		};
+
+		ws.onerror = function(event) {
+			console.error('WebSocket error observed:', event);
+		};
+
+		sendButton.onclick = function() {
+			const message = messageInput.value;
+			if (message) {
+				ws.send(username + ': ' + message);
+				messageInput.value = '';
+			}
+		};
+
+		messageInput.onkeypress = function(event) {
+			if (event.key === 'Enter') {
+				sendButton.click();
+			}
+		};
+	</script>
+</body>
+</html>
